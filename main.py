@@ -102,7 +102,6 @@ def main():
         download_txt(url, parse_book_title(book_id, soup))
         download_image(book_url, soup)
         download_book_comments(book_id, soup)
-        print(parse_book_genre(soup))
 
 
 if __name__ == '__main__':
