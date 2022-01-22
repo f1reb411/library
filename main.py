@@ -39,6 +39,8 @@ def download_image(book_url, soup, folder='images/'):
     with open(filepath, 'wb') as file:
         file.write(response.content)
 
+    return filepath
+
 
 def download_book_comments(book_id, soup, folder='comments/'):
     book_author = parse_book_author(soup)
@@ -78,12 +80,25 @@ def parse_book_title(book_id, soup):
     return f'{book_id}. {book[0].strip()}.txt'
 
 
+def parse_book_page(book_id, book_url, soup):
+
+    book_parsed_page = {
+        'title': parse_book_title(book_id, soup),
+        'genre': parse_book_genre(soup),
+        'author': parse_book_author(soup),
+        'comments': download_book_comments(book_id, soup),
+        'image': download_image(book_url, soup)
+    }
+
+    return book_parsed_page
+
+
 def main():
     Path('books').mkdir(exist_ok=True)
     Path('images').mkdir(exist_ok=True)
     Path('comments').mkdir(exist_ok=True)
 
-    for book_id in range(1, 11):
+    for book_id in range(9, 10):
         url = f'http://tululu.org/txt.php?id={book_id}'
         book_url = f'http://tululu.org/b{book_id}'
         response = requests.get(url)
