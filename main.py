@@ -113,10 +113,9 @@ def main():
 
         soup = BeautifulSoup(response.text, 'lxml')
 
-        #download_txt(url, parse_book_title(book_id, soup))
-        #download_image(book_url, soup)
-        #download_book_comments(book_id, soup)
-        print(parse_book_page(book_id, book_url, soup))
+        download_txt(url, parse_book_title(book_id, soup))
+        download_image(book_url, soup)
+        download_book_comments(book_id, soup)
 
 
 if __name__ == '__main__':
