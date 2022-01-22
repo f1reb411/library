@@ -28,7 +28,7 @@ def parse_book_author(soup):
     return book[1].strip()
 
 
-def download_image(book_id, book_url, soup, folder='images/'):
+def download_image(book_url, soup, folder='images/'):
     url = parse_book_image(book_url, soup)
     response = requests.get(url)
     response.raise_for_status()
@@ -64,6 +64,14 @@ def parse_book_image(book_url, soup):
     return book_image1
 
 
+def parse_book_genre(soup):
+    genre_tag = soup.find('span', class_='d_book').find_all('a')
+    genres = []
+    for genre in genre_tag:
+        genres.append(genre.text)
+    return genres
+
+
 def parse_book_title(book_id, soup):
     tag = soup.find('table').find('h1').text
     book = tag.split('::')
@@ -91,9 +99,10 @@ def main():
 
         soup = BeautifulSoup(response.text, 'lxml')
 
-        #download_txt(url, parse_book_title(book_id, soup))
-        #download_image(book_id, book_url, soup)
+        download_txt(url, parse_book_title(book_id, soup))
+        download_image(book_url, soup)
         download_book_comments(book_id, soup)
+        print(parse_book_genre(soup))
 
 
 if __name__ == '__main__':
