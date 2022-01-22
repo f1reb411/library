@@ -10,8 +10,8 @@ from pathvalidate import sanitize_filename
 
 def create_parser():
     parser = argparse.ArgumentParser(description='Программа скачивает книги с сайта tululu.org')
-    parser.add_argument('start_id', type=int)
-    parser.add_argument('finish_id', type=int)
+    parser.add_argument('--start_id', type=int, default=1)
+    parser.add_argument('--finish_id', type=int, default=10)
     return parser.parse_args()
 
 
