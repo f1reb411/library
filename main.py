@@ -83,8 +83,8 @@ def parse_book_genre(soup):
 
 
 def parse_book_title(book_id, soup):
-    tag = soup.find('table').find('h1').text
-    book = tag.split('::')
+    title_tag = soup.find('table').find('h1').text
+    book = title_tag.split('::')
     return f'{book_id}. {book[0].strip()}.txt'
 
 
@@ -106,12 +106,11 @@ def main():
     Path('comments').mkdir(exist_ok=True)
 
     parser = create_parser()
-    print(parser.start_id, parser.finish_id)
 
     for book_id in range(parser.start_id, parser.finish_id + 1):
-        url = f'http://tululu.org/txt.php?id={book_id}'
-        book_url = f'http://tululu.org/b{book_id}'
-        response = requests.get(url)
+        book_url = f'http://tululu.org/txt.php?id={book_id}'
+        parse_url = f'http://tululu.org/b{book_id}'
+        response = requests.get(book_url)
         response.raise_for_status()
 
         try:
@@ -119,13 +118,13 @@ def main():
         except requests.HTTPError:
             continue
 
-        response = requests.get(book_url)
+        response = requests.get(parse_url)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'lxml')
 
-        download_txt(url, parse_book_title(book_id, soup))
-        download_image(book_url, soup)
+        download_txt(book_url, parse_book_title(book_id, soup))
+        download_image(parse_url, soup)
         download_book_comments(book_id, soup)
 
 
