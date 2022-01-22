@@ -32,10 +32,30 @@ def download_image(book_id, book_url, soup, folder='images/'):
     url = parse_book_image(book_url, soup)
     response = requests.get(url)
     response.raise_for_status()
+
     image_name = str(urlsplit(url).path.split('/')[-1])
     filepath = os.path.join(folder, image_name)
+
     with open(filepath, 'wb') as file:
         file.write(response.content)
+
+
+def download_book_comments(book_id, soup, folder='comments/'):
+    book_author = parse_book_author(soup)
+
+    comments_tag = soup.find_all('div', class_='texts')
+    comments = ''
+    for comment in comments_tag:
+        comments += comment.find('span', class_='black').text + ' '
+
+    filename = f'{book_id}. {book_author}'
+    filepath = os.path.join(folder, filename)
+
+    if comments:
+        with open(filepath, 'w') as file:
+            file.write(comments)
+
+    return comments
 
 
 def parse_book_image(book_url, soup):
@@ -53,6 +73,7 @@ def parse_book_title(book_id, soup):
 def main():
     Path('books').mkdir(exist_ok=True)
     Path('images').mkdir(exist_ok=True)
+    Path('comments').mkdir(exist_ok=True)
 
     for book_id in range(1, 11):
         url = f'http://tululu.org/txt.php?id={book_id}'
@@ -70,8 +91,9 @@ def main():
 
         soup = BeautifulSoup(response.text, 'lxml')
 
-        download_txt(url, parse_book_title(book_id, soup))
-        download_image(book_id, book_url, soup)
+        #download_txt(url, parse_book_title(book_id, soup))
+        #download_image(book_id, book_url, soup)
+        download_book_comments(book_id, soup)
 
 
 if __name__ == '__main__':
