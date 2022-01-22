@@ -86,8 +86,7 @@ def parse_book_page(book_id, book_url, soup):
         'title': parse_book_title(book_id, soup),
         'genre': parse_book_genre(soup),
         'author': parse_book_author(soup),
-        'comments': download_book_comments(book_id, soup),
-        'image': download_image(book_url, soup)
+        'image': parse_book_image(book_url, soup)
     }
 
     return book_parsed_page
@@ -114,9 +113,10 @@ def main():
 
         soup = BeautifulSoup(response.text, 'lxml')
 
-        download_txt(url, parse_book_title(book_id, soup))
-        download_image(book_url, soup)
-        download_book_comments(book_id, soup)
+        #download_txt(url, parse_book_title(book_id, soup))
+        #download_image(book_url, soup)
+        #download_book_comments(book_id, soup)
+        print(parse_book_page(book_id, book_url, soup))
 
 
 if __name__ == '__main__':
