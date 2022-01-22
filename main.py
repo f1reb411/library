@@ -1,3 +1,4 @@
+import argparse
 import os
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
@@ -5,6 +6,13 @@ from urllib.parse import urljoin, urlsplit
 import requests
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
+
+
+def create_parser():
+    parser = argparse.ArgumentParser(description='Программа скачивает книги с сайта tululu.org')
+    parser.add_argument('start_id', type=int)
+    parser.add_argument('finish_id', type=int)
+    return parser.parse_args()
 
 
 def check_for_redirect(response):
@@ -97,7 +105,10 @@ def main():
     Path('images').mkdir(exist_ok=True)
     Path('comments').mkdir(exist_ok=True)
 
-    for book_id in range(9, 10):
+    parser = create_parser()
+    print(parser.start_id, parser.finish_id)
+
+    for book_id in range(parser.start_id, parser.finish_id + 1):
         url = f'http://tululu.org/txt.php?id={book_id}'
         book_url = f'http://tululu.org/b{book_id}'
         response = requests.get(url)
