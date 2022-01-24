@@ -108,9 +108,9 @@ def main():
     parser = create_parser()
 
     for book_id in range(parser.start_id, parser.finish_id + 1):
-        book_url = f'http://tululu.org/txt.php?id={book_id}'
+        book_url = f'http://tululu.org/txt.php'
         parse_url = f'http://tululu.org/b{book_id}'
-        response = requests.get(book_url)
+        response = requests.get(book_url, params={'id': book_id})
         response.raise_for_status()
 
         try:
@@ -118,12 +118,12 @@ def main():
         except requests.HTTPError:
             continue
 
-        response = requests.get(parse_url)
-        response.raise_for_status()
+        parse_response = requests.get(parse_url)
+        parse_response.raise_for_status()
 
-        soup = BeautifulSoup(response.text, 'lxml')
+        soup = BeautifulSoup(parse_response.text, 'lxml')
 
-        download_txt(book_url, parse_book_title(book_id, soup))
+        download_txt(response.url, parse_book_title(book_id, soup))
         download_image(parse_url, soup)
         download_book_comments(book_id, soup)
 
