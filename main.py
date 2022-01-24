@@ -121,6 +121,11 @@ def main():
         parse_response = requests.get(parse_url)
         parse_response.raise_for_status()
 
+        try:
+            check_for_redirect(parse_response)
+        except requests.HTTPError:
+            print('Не существует книги с таким id')
+
         soup = BeautifulSoup(parse_response.text, 'lxml')
 
         download_txt(response.url, parse_book_title(book_id, soup))
