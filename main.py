@@ -21,23 +21,23 @@ def check_for_redirect(response):
 
 
 def download_txt(url, filename, folder='books/'):
+    title = filename['title']
+
     response = requests.get(url)
     response.raise_for_status()
-    safe_filename = sanitize_filename(filename)
+
+    safe_filename = sanitize_filename(title)
     filepath = os.path.join(folder, safe_filename)
+
     with open(filepath, 'w', encoding='utf-8') as file:
         file.write(response.text)
     return safe_filename
 
 
-def parse_book_author(soup):
-    tag = soup.find('table').find('h1').text
-    book = tag.split('::')
-    return book[1].strip()
+def download_image(book_id, book_url, soup, folder='images/'):
+    book_parsed_page = parse_book_page(book_id, book_url, soup)
+    url = book_parsed_page['image_url']
 
-
-def download_image(book_url, soup, folder='images/'):
-    url = parse_book_image(book_url, soup)
     response = requests.get(url)
     response.raise_for_status()
 
@@ -50,15 +50,16 @@ def download_image(book_url, soup, folder='images/'):
     return filepath
 
 
-def download_book_comments(book_id, soup, folder='comments/'):
-    book_author = parse_book_author(soup)
+def download_book_comments(book_id, book_url, soup, folder='comments/'):
+    book_parsed_page = parse_book_page(book_id, book_url, soup)
+    author = book_parsed_page['author']
 
     comments_tag = soup.find_all('div', class_='texts')
     comments = ''
     for comment in comments_tag:
         comments += comment.find('span', class_='black').text + ' '
 
-    filename = f'{book_id}. {book_author}'
+    filename = f'{book_id}. {author}'
     filepath = os.path.join(folder, filename)
 
     if comments:
@@ -68,33 +69,23 @@ def download_book_comments(book_id, soup, folder='comments/'):
     return comments
 
 
-def parse_book_image(book_url, soup):
-    book_image = soup.find('div', class_='bookimage').find('img')['src']
-    book_image1 = urljoin(book_url, book_image)
-    return book_image1
-
-
-def parse_book_genre(soup):
-    genre_tag = soup.find('span', class_='d_book').find_all('a')
-    genres = []
-    for genre in genre_tag:
-        genres.append(genre.text)
-    return genres
-
-
-def parse_book_title(book_id, soup):
-    title_tag = soup.find('table').find('h1').text
-    book = title_tag.split('::')
-    return f'{book_id}. {book[0].strip()}.txt'
-
-
 def parse_book_page(book_id, book_url, soup):
+    title_and_author_tag = soup.find('table').find('h1').text
+    title_and_author = title_and_author_tag.split('::')
+    title = f'{book_id}. {title_and_author[0].strip()}.txt'
+    author = title_and_author[1].strip()
+
+    genre_tag = soup.find('span', class_='d_book').find_all('a')
+    genre = [genre.text for genre in genre_tag]
+
+    image_tag = soup.find('div', class_='bookimage').find('img')['src']
+    image_url = urljoin(book_url, image_tag)
 
     book_parsed_page = {
-        'title': parse_book_title(book_id, soup),
-        'genre': parse_book_genre(soup),
-        'author': parse_book_author(soup),
-        'image': parse_book_image(book_url, soup)
+        'title': title,
+        'author': author,
+        'genre': genre,
+        'image_url': image_url
     }
 
     return book_parsed_page
@@ -121,16 +112,11 @@ def main():
         parse_response = requests.get(parse_url)
         parse_response.raise_for_status()
 
-        try:
-            check_for_redirect(parse_response)
-        except requests.HTTPError:
-            print('Не существует книги с таким id')
-
         soup = BeautifulSoup(parse_response.text, 'lxml')
 
-        download_txt(response.url, parse_book_title(book_id, soup))
-        download_image(parse_url, soup)
-        download_book_comments(book_id, soup)
+        download_txt(response.url, parse_book_page(book_id, book_url, soup))
+        download_image(book_id, parse_url, soup)
+        download_book_comments(book_id, parse_url, soup)
 
 
 if __name__ == '__main__':
