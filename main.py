@@ -20,13 +20,11 @@ def check_for_redirect(response):
         raise requests.HTTPError
 
 
-def download_txt(url, filename, folder='books/'):
-    title = filename['title']
-
+def download_txt(book_id, url, title, folder='books/'):
     response = requests.get(url)
     response.raise_for_status()
-
-    safe_filename = sanitize_filename(title)
+    filename1 = f'{book_id}. {title}.txt'
+    safe_filename = sanitize_filename(filename1)
     filepath = os.path.join(folder, safe_filename)
 
     with open(filepath, 'w', encoding='utf-8') as file:
@@ -34,10 +32,7 @@ def download_txt(url, filename, folder='books/'):
     return safe_filename
 
 
-def download_image(book_id, book_url, soup, folder='images/'):
-    book_parsed_page = parse_book_page(book_id, book_url, soup)
-    url = book_parsed_page['image_url']
-
+def download_image(url, folder='images/'):
     response = requests.get(url)
     response.raise_for_status()
 
@@ -50,10 +45,7 @@ def download_image(book_id, book_url, soup, folder='images/'):
     return filepath
 
 
-def download_book_comments(book_id, book_url, soup, folder='comments/'):
-    book_parsed_page = parse_book_page(book_id, book_url, soup)
-    author = book_parsed_page['author']
-
+def download_book_comments(book_id, author, soup, folder='comments/'):
     comments_tag = soup.find_all('div', class_='texts')
     comments = ''
     for comment in comments_tag:
@@ -69,23 +61,18 @@ def download_book_comments(book_id, book_url, soup, folder='comments/'):
     return comments
 
 
-def parse_book_page(book_id, book_url, soup):
-    title_and_author_tag = soup.find('table').find('h1').text
-    title_and_author = title_and_author_tag.split('::')
-    title = f'{book_id}. {title_and_author[0].strip()}.txt'
-    author = title_and_author[1].strip()
+def parse_book_page(book_url, soup):
+    title, author = soup.find('table').find('h1').text.split('::')
 
     genre_tag = soup.find('span', class_='d_book').find_all('a')
-    genre = [genre.text for genre in genre_tag]
 
     image_tag = soup.find('div', class_='bookimage').find('img')['src']
-    image_url = urljoin(book_url, image_tag)
 
     book_parsed_page = {
-        'title': title,
-        'author': author,
-        'genre': genre,
-        'image_url': image_url
+        'title': title.strip(),
+        'author': author.strip(),
+        'genre': [genre.text for genre in genre_tag],
+        'image_url': urljoin(book_url, image_tag)
     }
 
     return book_parsed_page
@@ -99,24 +86,22 @@ def main():
     parser = create_parser()
 
     for book_id in range(parser.start_id, parser.finish_id + 1):
-        book_url = f'http://tululu.org/txt.php'
+        book_url = 'http://tululu.org/txt.php'
         parse_url = f'http://tululu.org/b{book_id}'
-        response = requests.get(book_url, params={'id': book_id})
-        response.raise_for_status()
 
         try:
+            response = requests.get(book_url, params={'id': book_id})
             check_for_redirect(response)
-        except requests.HTTPError:
+            parse_response = requests.get(parse_url)
+        except (requests.HTTPError, requests.ConnectionError):
             continue
 
-        parse_response = requests.get(parse_url)
-        parse_response.raise_for_status()
-
         soup = BeautifulSoup(parse_response.text, 'lxml')
+        book_info = parse_book_page(book_url, soup)
 
-        download_txt(response.url, parse_book_page(book_id, book_url, soup))
-        download_image(book_id, parse_url, soup)
-        download_book_comments(book_id, parse_url, soup)
+        download_txt(book_id, response.url, book_info['title'])
+        download_image(book_info['image_url'])
+        download_book_comments(book_id, book_info['author'], soup)
 
 
 if __name__ == '__main__':
