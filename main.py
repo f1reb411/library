@@ -23,8 +23,9 @@ def check_for_redirect(response):
 def download_txt(book_id, url, title, folder='books/'):
     response = requests.get(url)
     response.raise_for_status()
-    filename1 = f'{book_id}. {title}.txt'
-    safe_filename = sanitize_filename(filename1)
+
+    filename = f'{book_id}. {title}.txt'
+    safe_filename = sanitize_filename(filename)
     filepath = os.path.join(folder, safe_filename)
 
     with open(filepath, 'w', encoding='utf-8') as file:
