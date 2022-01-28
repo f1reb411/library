@@ -89,11 +89,13 @@ def main():
     for book_id in range(parser.start_id, parser.finish_id + 1):
         book_url = 'http://tululu.org/txt.php'
         parse_url = f'http://tululu.org/b{book_id}'
-
+        response = requests.get(book_url, params={'id': book_id})
+        parse_response = requests.get(parse_url)
         try:
-            response = requests.get(book_url, params={'id': book_id})
+            response.raise_for_status()
             check_for_redirect(response)
-            parse_response = requests.get(parse_url)
+            parse_response.raise_for_status()
+
         except (requests.HTTPError, requests.ConnectionError):
             continue
 
