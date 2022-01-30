@@ -20,10 +20,7 @@ def check_for_redirect(response):
         raise requests.HTTPError
 
 
-def download_txt(book_id, url, title, folder='books/'):
-    response = requests.get(url)
-    response.raise_for_status()
-
+def extract_book(book_id, response, title, folder='books/'):
     filename = f'{book_id}. {title}.txt'
     safe_filename = sanitize_filename(filename)
     filepath = os.path.join(folder, safe_filename)
@@ -89,20 +86,21 @@ def main():
     for book_id in range(parser.start_id, parser.finish_id + 1):
         book_url = 'http://tululu.org/txt.php'
         parse_url = f'http://tululu.org/b{book_id}'
+
         response = requests.get(book_url, params={'id': book_id})
         parse_response = requests.get(parse_url)
+
         try:
             response.raise_for_status()
             check_for_redirect(response)
             parse_response.raise_for_status()
-
         except (requests.HTTPError, requests.ConnectionError):
             continue
 
         soup = BeautifulSoup(parse_response.text, 'lxml')
         book_info = parse_book_page(book_url, soup)
 
-        download_txt(book_id, response.url, book_info['title'])
+        extract_book(book_id, response, book_info['title'])
         download_image(book_info['image_url'])
         download_book_comments(book_id, book_info['author'], soup)
 
