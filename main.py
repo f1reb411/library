@@ -43,13 +43,12 @@ def download_image(url, folder='images/'):
     return filepath
 
 
-def download_book_comments(book_id, author, soup, folder='comments/'):
+def download_book_comments(book_id, title, soup, folder='comments/'):
     comments_tag = soup.find_all('div', class_='texts')
     comments = ''
     for comment in comments_tag:
         comments += comment.find('span', class_='black').text + ' '
-
-    filename = f'{book_id}. {author}'
+    filename = f'{book_id}. {title}'
     filepath = os.path.join(folder, filename)
 
     if comments:
@@ -102,7 +101,7 @@ def main():
 
         extract_book(book_id, response, book_info['title'])
         download_image(book_info['image_url'])
-        download_book_comments(book_id, book_info['author'], soup)
+        download_book_comments(book_id, book_info['title'], soup)
 
 
 if __name__ == '__main__':
