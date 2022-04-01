@@ -1,15 +1,16 @@
-# Парсер книг 
+# Book parser
 
-Программа скачивает книги с [tululu.org](https://tululu.org/). Taкже ко всем книгам скачиваются обложки и комментарии.
+The programm download books from [tululu.org](https://tululu.org/). Covers and comments are also downloaded for all books.
 
-## Как установить
+## How to install
 
-Python3 должен быть уже установлен. Затем используйте pip (или pip3, есть есть конфликт с Python2) для установки зависимостей:
+Python3 should be installed. At first, clone repository, then to install all dependencies use this command in terminal:
 ```
 pip install -r requirements.txt
 ```
-## Запустить
+## To run
 ```
 python3 main.py --start_id=20 --finish_id=30
 ```
-Если не указывать аргументы, будут скачаны книги по умолчанию(с 1 по 10)
+
+If no arguments are given, the default books will be downloaded (from 1 to 10)
